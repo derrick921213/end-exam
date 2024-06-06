@@ -1,82 +1,65 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
+#include "BPlusTree.h"
+#include "hashes.h"
+#define MAX_KEYS 3
 
-#define MAX 3
-typedef struct Node
+BPlusTreeNode *create_node(bool is_leaf)
 {
-    int keys[MAX];
-    struct Node *children[MAX + 1];
-    struct Node *next;
-    bool leaf;
-    int num_keys;
-} Node;
-
-typedef struct BPlusTree
-{
-    Node *root;
-} BPlusTree;
-Node* create_node(bool is_leaf){
-    Node *node = (Node *)malloc(sizeof(Node));
-    node->num_keys = 0;
-    node->leaf = is_leaf;
-    node->next = NULL;
-    for (int i = 0; i < MAX+1; i++)
+    BPlusTreeNode *node = (BPlusTreeNode *)malloc(sizeof(BPlusTreeNode));
+    if (!node)
     {
-        node->children[i] = NULL;
+        perror("Failed to allocate memory for BPlusTreeNode");
+        exit(EXIT_FAILURE);
     }
+
+    node->keys = (unsigned long *)malloc((MAX_KEYS + 1) * sizeof(unsigned long));
+    if (!node->keys)
+    {
+        perror("Failed to allocate memory for keys");
+        exit(EXIT_FAILURE);
+    }
+
+    node->children = (BPlusTreeNode **)malloc((MAX_KEYS + 2) * sizeof(BPlusTreeNode *));
+    if (!node->children)
+    {
+        perror("Failed to allocate memory for children");
+        exit(EXIT_FAILURE);
+    }
+    node->n = 0;
+    node->is_leaf = is_leaf;
+    node->next = NULL;
     return node;
 }
 
-BPlusTree* createBPlusTree(){
-    BPlusTree *tree = (BPlusTree *)malloc(sizeof(BPlusTree));
-    tree->root = create_node(true);
-    return tree;
-}
+void insert_non_full(BPlusTreeNode *node, unsigned long key)
+{
+    int i = node->n - 1;
 
-void split_node(Node* parent,int index,Node* node){
-    Node* new_node = create_node(node->leaf);
-    new_node->num_keys = (MAX-1)/2;
-    // 將原節點的後半複製到新節點
-    for(int i=0;i<(MAX-1)/2;i++){
-        new_node->keys[i] = node->keys[i+(MAX-1)/2];
-    }
-    if(!node->leaf){
-        for(int i=0;i<(MAX+1)/2;i++){
-            new_node->children[i] = node->children[i+(MAX+1)/2];
-        }
-    }
-    else{
-        new_node->next = node->next;
-        node->next = new_node;
-    }
-    node->num_keys = (MAX-1)/2;
-    for (int i = parent->num_keys; i > index; i--) {
-        parent->children[i + 1] = parent->children[i];
-        parent->keys[i] = parent->keys[i - 1];
-    }
-    parent->children[index + 1] = new_node;
-    parent->keys[index] = node->keys[(MAX - 1) / 2];
-    parent->num_keys++;
-}
-// 插入一个键到节点
-void insert_non_full(Node *node, int key) {
-    int i = node->num_keys - 1;
-    if (node->leaf) {
-        while (i >= 0 && node->keys[i] > key) {
+    if (node->is_leaf)
+    {
+        while (i >= 0 && key < node->keys[i])
+        {
             node->keys[i + 1] = node->keys[i];
             i--;
         }
         node->keys[i + 1] = key;
-        node->num_keys++;
-    } else {
-        while (i >= 0 && node->keys[i] > key) {
+        node->n++;
+    }
+    else
+    {
+        while (i >= 0 && key < node->keys[i])
+        {
             i--;
         }
         i++;
-        if (node->children[i]->num_keys == MAX) {
-            split_node(node, i, node->children[i]);
-            if (key > node->keys[i]) {
+        if (node->children[i]->n == MAX_KEYS)
+        {
+            split_child(node, i, node->children[i]);
+            if (key > node->keys[i])
+            {
                 i++;
             }
         }
@@ -84,51 +67,131 @@ void insert_non_full(Node *node, int key) {
     }
 }
 
-// 插入一个键到B+树
-void insert(BPlusTree *tree, int key) {
-    Node *root = tree->root;
-    if (root->num_keys == MAX) {
-        Node *new_root = create_node(0);
-        new_root->children[0] = root;
-        split_node(new_root, 0, root);
-        tree->root = new_root;
-        insert_non_full(new_root, key);
-    } else {
-        insert_non_full(root, key);
+void split_child(BPlusTreeNode *parent, int index, BPlusTreeNode *full_child)
+{
+    int mid_index = MAX_KEYS / 2;
+    BPlusTreeNode *new_node = create_node(full_child->is_leaf);
+    new_node->n = MAX_KEYS - mid_index - 1;
+
+    for (int j = 0; j < MAX_KEYS - mid_index - 1; j++)
+    {
+        new_node->keys[j] = full_child->keys[mid_index + 1 + j];
+    }
+    if (!full_child->is_leaf)
+    {
+        for (int j = 0; j < MAX_KEYS - mid_index; j++)
+        {
+            new_node->children[j] = full_child->children[mid_index + 1 + j];
+        }
+    }
+    else
+    {
+        new_node->next = full_child->next;
+        full_child->next = new_node;
+    }
+
+    full_child->n = mid_index;
+
+    for (int j = parent->n; j >= index + 1; j--)
+    {
+        parent->children[j + 1] = parent->children[j];
+    }
+    parent->children[index + 1] = new_node;
+
+    for (int j = parent->n - 1; j >= index; j--)
+    {
+        parent->keys[j + 1] = parent->keys[j];
+    }
+    parent->keys[index] = full_child->keys[mid_index];
+    parent->n++;
+}
+
+void insert(BPlusTreeNode **root, const char *key)
+{
+    unsigned long hash_key = hash_function(key);
+    // printf("Inserting key: %s, Hash: %lu\n", key, hash_key);
+    if ((*root)->n == MAX_KEYS)
+    {
+        BPlusTreeNode *new_root = create_node(false);
+        new_root->children[0] = *root;
+        split_child(new_root, 0, *root);
+        insert_non_full(new_root, hash_key);
+        *root = new_root;
+    }
+    else
+    {
+        insert_non_full(*root, hash_key);
     }
 }
 
-// 遍历B+树
-void traverse(Node *node) {
-    if (node != NULL) {
-        int i;
-        for (i = 0; i < node->num_keys; i++) {
-            if (!node->leaf) {
-                traverse(node->children[i]);
+bool search(BPlusTreeNode *node, const char *key)
+{
+    unsigned long hash_key = hash_function(key);
+    // printf("Searching key: %s, Hash: %lu\n", key, hash_key);
+    int i = 0;
+    while (i < node->n && hash_key > node->keys[i])
+    {
+        i++;
+    }
+    if (i < node->n && hash_key == node->keys[i])
+    {
+        return true;
+    }
+    if (node->is_leaf)
+    {
+        // 当到达叶子节点时，检查下一个叶子节点
+        BPlusTreeNode *next_leaf = node->next;
+        while (next_leaf != NULL)
+        {
+            for (int j = 0; j < next_leaf->n; j++)
+            {
+                if (next_leaf->keys[j] == hash_key)
+                {
+                    return true;
+                }
             }
-            printf("%d ", node->keys[i]);
+            next_leaf = next_leaf->next;
         }
-        if (!node->leaf) {
-            traverse(node->children[i]);
-        }
+        return false;
     }
+    return search(node->children[i], key);
 }
 
-// 主函数示例
-int main() {
-    BPlusTree *tree = createBPlusTree();
-    insert(tree, 10);
-    insert(tree, 20);
-    insert(tree, 5);
-    insert(tree, 6);
-    insert(tree, 12);
-    insert(tree, 30);
-    insert(tree, 7);
-    insert(tree, 17);
+void free_node(BPlusTreeNode *node)
+{
+    if (!node)
+        return;
+    if (!node->is_leaf)
+    {
+        for (int i = 0; i <= node->n; i++)
+        {
+            free_node(node->children[i]);
+        }
+    }
+    free(node->keys);
+    free(node->children);
+    free(node);
+}
 
-    printf("B+ Tree traversal:\n");
-    traverse(tree->root);
+void print_tree(BPlusTreeNode *node, int level)
+{
+    if (node == NULL)
+        return;
+
+    // 打印当前节点
+    printf("Level %d: ", level);
+    for (int i = 0; i < node->n; i++)
+    {
+        printf("%lu ", node->keys[i]);
+    }
     printf("\n");
 
-    return 0;
+    // 递归打印子节点
+    if (!node->is_leaf)
+    {
+        for (int i = 0; i <= node->n; i++)
+        {
+            print_tree(node->children[i], level + 1);
+        }
+    }
 }
