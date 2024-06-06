@@ -2,22 +2,30 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-#define MAX_KEYS 3 // B+ 树的最大键数（2阶树）
+#define MAX_KEYS 3 // B+ 樹的最大鍵數（2階樹）
 
 typedef struct BPlusTreeNode {
-    unsigned long *keys;  // 存储哈希值
+    unsigned long *keys;  // 存儲哈希值
     struct BPlusTreeNode **children;
     struct BPlusTreeNode *next;
-    int n; // 当前键的数量
+    int n; // 當前鍵的數量
     bool is_leaf;
 } BPlusTreeNode;
+
+typedef struct DataNode {
+    unsigned long hash_value;
+    char course_id[100];
+    struct DataNode *next;
+} DataNode;
 
 unsigned long hash_function(const char* str) {
     unsigned long hash = 5381;
     int c;
     while ((c = *str++))
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+        hash = ((hash << 5) + hash) + c; // hash * 33 + c
     return hash;
 }
 
@@ -107,7 +115,6 @@ void split_child(BPlusTreeNode* parent, int index, BPlusTreeNode* full_child) {
 
 void insert(BPlusTreeNode** root, const char* key) {
     unsigned long hash_key = hash_function(key);
-    // printf("Inserting key: %s, Hash: %lu\n", key, hash_key);
     if ((*root)->n == MAX_KEYS) {
         BPlusTreeNode* new_root = create_node(false);
         new_root->children[0] = *root;
@@ -121,7 +128,6 @@ void insert(BPlusTreeNode** root, const char* key) {
 
 bool search(BPlusTreeNode* node, const char* key) {
     unsigned long hash_key = hash_function(key);
-    // printf("Searching key: %s, Hash: %lu\n", key, hash_key);
     int i = 0;
     while (i < node->n && hash_key > node->keys[i]) {
         i++;
@@ -130,7 +136,6 @@ bool search(BPlusTreeNode* node, const char* key) {
         return true;
     }
     if (node->is_leaf) {
-        // 当到达叶子节点时，检查下一个叶子节点
         BPlusTreeNode* next_leaf = node->next;
         while (next_leaf != NULL) {
             for (int j = 0; j < next_leaf->n; j++) {
@@ -144,7 +149,6 @@ bool search(BPlusTreeNode* node, const char* key) {
     }
     return search(node->children[i], key);
 }
-
 
 void free_node(BPlusTreeNode* node) {
     if (!node) return;
@@ -161,14 +165,12 @@ void free_node(BPlusTreeNode* node) {
 void print_tree(BPlusTreeNode* node, int level) {
     if (node == NULL) return;
 
-    // 打印当前节点
     printf("Level %d: ", level);
     for (int i = 0; i < node->n; i++) {
         printf("%lu ", node->keys[i]);
     }
     printf("\n");
 
-    // 递归打印子节点
     if (!node->is_leaf) {
         for (int i = 0; i <= node->n; i++) {
             print_tree(node->children[i], level + 1);
@@ -176,19 +178,107 @@ void print_tree(BPlusTreeNode* node, int level) {
     }
 }
 
+// 新的函式，將資料存儲到記憶體中的連結串列
+void store_data(DataNode** head, unsigned long hash_value, const char* course_id) {
+    DataNode* new_node = (DataNode*)malloc(sizeof(DataNode));
+    if (!new_node) {
+        perror("Failed to allocate memory for DataNode");
+        exit(EXIT_FAILURE);
+    }
+    new_node->hash_value = hash_value;
+    strcpy(new_node->course_id, course_id);
+    new_node->next = *head;
+    *head = new_node;
+}
+
+// 將連結串列中的資料寫入到對應的檔案中
+void write_data_to_files(DataNode* head) {
+    DataNode* current = head;
+    while (current) {
+        char filename[256];
+        sprintf(filename, "../index/%lu_hash", current->hash_value);
+        FILE *file = fopen(filename, "a"); // 使用追加模式
+        if (!file) {
+            printf("無法創建檔案 %s\n", filename);
+            current = current->next;
+        }
+        fprintf(file, "%s\n", current->course_id); // 將課程ID寫入哈希文件
+        fclose(file);
+        current = current->next;
+    }
+}
+
+// 釋放連結串列所佔用的記憶體
+void free_data_list(DataNode* head) {
+    DataNode* current = head;
+    while (current) {
+        DataNode* next = current->next;
+        free(current);
+        current = next;
+    }
+}
+
+int isDirectoryExists(const char *path)
+{
+    struct stat stats;
+
+    stat(path, &stats);
+
+    // Check for file existence
+    if (S_ISDIR(stats.st_mode))
+        return 1;
+
+    return 0;
+}
+
 int main() {
     BPlusTreeNode* root = create_node(true);
-    insert(&root, "hello");
-    insert(&root, "world");
-    insert(&root, "B+Tree");
-    insert(&root, "example");
-    insert(&root, "insert");
-    insert(&root, "search");
-    printf("Tree structure:\n");
+    char Filename[100];
+
+    FILE *File;
+    
+    if(isDirectoryExists("../index")){
+        printf("資料夾已存在\n");
+    }
+    else{
+        printf("資料夾不存在\n");
+        exit(1);
+    }
+
+    for (int i = 1; i <= 10; i++) {
+        DataNode* data_list = NULL; // 初始化一個新的連結串列
+        sprintf(Filename, "../data/data_no_cname/%04d", i);  // 將數字 i 格式化為四位數的字串，並存儲到 Filename 中
+
+        File = fopen(Filename, "r");  // "r" 表示讀取模式
+        if (File == NULL) {
+            printf("無法打開檔案 %s\n", Filename);
+            continue;
+        }
+        printf("正在讀取檔案 %s\n", Filename);
+        char line[256];
+        while (fgets(line, sizeof(line), File)) {
+            char student_id[100], course_id[100];
+            sscanf(line, "%[^,],%s", student_id, course_id);
+            unsigned long hash_value = hash_function(student_id);
+            insert(&root, student_id);
+
+            // 將資料存儲到記憶體中的連結串列
+            store_data(&data_list, hash_value, course_id);
+        }
+
+        fclose(File);
+
+        // 將存儲在記憶體中的資料寫入到對應的檔案中
+        write_data_to_files(data_list);
+
+        // 釋放連結串列所佔用的記憶體
+        free_data_list(data_list);
+    }
+
+    // 打印B+樹的結構
     print_tree(root, 0);
-    printf("Searching for 'world': %s\n", search(root, "world") ? "Found" : "Not Found");
-    printf("Searching for 'B+Tree': %s\n", search(root, "B+Tree") ? "Found" : "Not Found");
-    printf("Searching for 'missing': %s\n", search(root, "missing") ? "Found" : "Not Found");
+
+    // 釋放B+樹節點的記憶體
     free_node(root);
 
     return 0;
