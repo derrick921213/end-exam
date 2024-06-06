@@ -13,11 +13,9 @@ EXECUTABLE = $(BIN)/main
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-	@mkdir -p $(BIN)
 	$(CC) $(CFLAGS) -o $@ $^
 
 $(OBJ)/%.o: $(SRC)/%.c
-	@mkdir -p $(OBJ)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # 編譯指定的目標文件
@@ -25,8 +23,6 @@ compile:
 ifndef TARGET
 	$(error TARGET is undefined. Usage: make compile TARGET=<filename>)
 endif
-	@mkdir -p $(BIN)
-	@mkdir -p $(OBJ)
 	$(CC) $(CFLAGS) -o $(BIN)/$(TARGET) $(SRC)/$(TARGET).c
 
 # 編譯並運行指定的目標文件

@@ -127,7 +127,7 @@ void insert(BPlusTreeNode **root, const char *key)
 bool search(BPlusTreeNode *node, const char *key)
 {
     unsigned long hash_key = hash_function(key);
-    // printf("Searching key: %s, Hash: %lu\n", key, hash_key);
+    printf("Searching key: %s, Hash: %lu\n", key, hash_key);
     int i = 0;
     while (i < node->n && hash_key > node->keys[i])
     {
