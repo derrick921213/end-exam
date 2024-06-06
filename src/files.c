@@ -33,7 +33,7 @@ ParsedLine *parse_line(const char *line)
         exit(1);
     }
 
-    if (sscanf(line, "%31[^,],%d", parsed->id, &parsed->number) == 2)
+    if (sscanf(line, "%31[^,],%31s", parsed->id, parsed->number) == 2)
     {
         return parsed;
     }
@@ -44,7 +44,7 @@ ParsedLine *parse_line(const char *line)
     }
 }
 
-void ProcessFile(const char *filename, BPlusTreeNode *root)
+void ProcessFile(const char *filename, BPlusTreeNode *root, BPlusTreeNode *root2)
 {
     DataNode *data_list = NULL;
     FILE *file = open_file(filename, "r");
@@ -57,8 +57,9 @@ void ProcessFile(const char *filename, BPlusTreeNode *root)
         if (parsed != NULL)
         {
             insert(&root, parsed->id);
+            insert(&root2, parsed->number);
             // printf("ID: %s, Number: %d\n", parsed->id, parsed->number);
-            store_data(&data_list, hash_function(parsed->id), parsed->id, parsed->number);
+            store_data(&data_list, hash_function(parsed->id), parsed->id,hash_function(parsed->number), parsed->number);
         }
         // else
         // {
@@ -66,6 +67,8 @@ void ProcessFile(const char *filename, BPlusTreeNode *root)
         // }
     }
     write_data_to_files(data_list);
+    // print_tree(root, 0);
+    // print_tree(root2, 0);
     free_data_list(data_list);
     close_file(file);
 }
@@ -108,21 +111,33 @@ void write_data_to_files(DataNode *head)
     DataNode *current = head;
     while (current)
     {
-        char filename[256];
-        sprintf(filename, "index/%lu_hash", current->hash_value);
-        FILE *file = fopen(filename, "a"); // 使用追加模式
-        if (!file)
+        char filename1[256], filename2[256];
+        sprintf(filename1, "data/index/student_to_course/%lu", current->student_hash_value);
+        sprintf(filename2, "data/index/course_to_student/%lu", current->course_hash_value);
+        
+        FILE *file1 = fopen(filename1, "a");
+        FILE *file2 = fopen(filename2, "a");
+        if (!file1 || !file2)
         {
-            printf("無法創建檔案 %s\n", filename);
+            if (!file1) printf("無法創建檔案 %s\n", filename1);
+            if (!file2) printf("無法創建檔案 %s\n", filename2);
+            if (file1) fclose(file1);
+            if (file2) fclose(file2);
             current = current->next;
+            continue;
         }
-        fprintf(file, "%d\n", current->data->number); // 將課程ID寫入哈希文件
-        fclose(file);
+
+        fprintf(file1, "%s\n", current->data->number);
+        fprintf(file2, "%s\n", current->data->id);
+
+        fclose(file1);
+        fclose(file2);
+
         current = current->next;
     }
 }
 
-void store_data(DataNode **head, unsigned long hash_value, const char *student_id, int course_id)
+void store_data(DataNode **head, unsigned long student_hash_value, const char *student_id,unsigned long course_hash_value, const char *course_id)
 {
     DataNode *new_node = (DataNode *)malloc(sizeof(DataNode));
     if (!new_node)
@@ -137,13 +152,10 @@ void store_data(DataNode **head, unsigned long hash_value, const char *student_i
         free(new_node);
         exit(EXIT_FAILURE);
     }
-    new_node->hash_value = hash_value;
+    new_node->student_hash_value = student_hash_value;
+    new_node->course_hash_value = course_hash_value;
     strcpy(new_node->data->id, student_id);
-    new_node->data->number = course_id;
+    strcpy(new_node->data->number, course_id);
     new_node->next = *head;
     *head = new_node;
 }
-// int main() {
-//     ManyFile(1);
-//     return 0;
-// }
