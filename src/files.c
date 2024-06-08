@@ -193,14 +193,14 @@ int create_directory(const char *dir_name)
 }
 int delete_directory(const char *dir_name)
 {
-    if (rmdir(dir_name) == 0)
-    {
-        printf("Directory '%s' deleted successfully.\n", dir_name);
-        return 0; // Success
-    }
-    else
-    {
-        perror("Error deleting directory");
-        return 1; // Failure
-    }
+    int status;
+#ifdef _WIN32
+    char command[512];
+    snprintf(command, sizeof(command), "rd /s /q \"%s\"", dir_name);
+#else
+    char command[512];
+    snprintf(command, sizeof(command), "rm -rf \"%s\"", dir_name);
+#endif
+    status = system(command);
+    return status;
 }
