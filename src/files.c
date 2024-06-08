@@ -17,18 +17,25 @@
 #include "hashes.h"
 #define MAX_LINE_LENGTH 256
 
-void printProgressBar(int current, int total) {
+void printProgressBar(int current, int total)
+{
     int percentage = (current * 100) / total;
     int width = 50; // 進度條的寬度
     int pos = width * percentage / 100;
-    
+
     printf("[");
-    for (int i = 0; i < width; ++i) {
-        if (i < pos) {
+    for (int i = 0; i < width; ++i)
+    {
+        if (i < pos)
+        {
             printf("=");
-        } else if (i == pos) {
+        }
+        else if (i == pos)
+        {
             printf(">");
-        } else {
+        }
+        else
+        {
             printf(" ");
         }
     }
@@ -167,18 +174,32 @@ void store_data(DataNode **head, unsigned long hash_value, const char *student_i
     new_node->next = *head;
     *head = new_node;
 }
-int create_directory(const char* dir_name) {
-    if (mkdir(dir_name, 0755) == 0) {
+int create_directory(const char *dir_name)
+{
+#ifdef _WIN32
+    if (mkdir(dir_name) == 0)
+    {
+#else
+    if (mkdir(dir_name, 0755) == 0)
+    {
+#endif
         return 0;
-    } else {
+    }
+    else
+    {
+        perror("Error creating directory");
         return 1;
     }
 }
-int delete_directory(const char* dir_name) {
-    if (rmdir(dir_name) == 0) {
+int delete_directory(const char *dir_name)
+{
+    if (rmdir(dir_name) == 0)
+    {
         printf("Directory '%s' deleted successfully.\n", dir_name);
         return 0; // Success
-    } else {
+    }
+    else
+    {
         perror("Error deleting directory");
         return 1; // Failure
     }

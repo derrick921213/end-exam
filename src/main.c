@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <limits.h>
 #endif
-#define FILECOUNT 466
+#define FILECOUNT 10 
 #define INDEXDIR "data/index"
 #define TREEFILE "data/bplustree.dat"
 #define DATA "data"
@@ -80,13 +80,10 @@ int initialization(void)
     }
     return 0;
 }
-int changeCWD(const char *dir)
+int changeCWD()
 {
-    if(!dir){
-        cwd = dir;
-    }
 #ifdef _WIN32
-    if (SetCurrentDirectory(makefile_dir)==0)
+    if (SetCurrentDirectory(cwd)==0)
     {
         fprintf(stderr, "SetCurrentDirectory() error: %ld\n", GetLastError());
         return 1;
@@ -108,7 +105,7 @@ int main(int argc, char *argv[])
         return 1;
     }
     cwd = argv[1];
-    changeCWD(NULL);
+    changeCWD();
 
     if (initialization() != 0)
     {
