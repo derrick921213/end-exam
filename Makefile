@@ -44,10 +44,10 @@ EXECUTABLE = $(BIN)$(PATHSEP)main$(EXEC_EXT)
 
 .PHONY: all clean compile run directories print-vars debug
 
-all: $(EXECUTABLE)
+all: directories $(EXECUTABLE)
 	@$(EXECUTABLE) $(WORK_DIR)
 
-$(EXECUTABLE): directories $(OBJECTS)
+$(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 
 $(OBJ)$(PATHSEP)%.o: $(SRC)$(PATHSEP)%.c | directories
