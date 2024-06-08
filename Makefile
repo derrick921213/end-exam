@@ -3,6 +3,7 @@ CFLAGS = -Wall -Wextra -I./include
 SRC = src
 BIN = bin
 OBJ = obj
+WORK_DIR = $(shell pwd)
 
 SOURCES = $(wildcard $(SRC)/*.c)
 OBJECTS = $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SOURCES))
@@ -33,5 +34,5 @@ clean:
 	@rm -f $(BIN)/* $(OBJ)/*
 ifeq ($(TARGET), main)
 all: $(EXECUTABLE)
-	@$(EXECUTABLE)
+	@$(EXECUTABLE) $(WORK_DIR)
 endif

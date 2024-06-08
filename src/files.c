@@ -3,10 +3,38 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifdef _WIN32
+#include <windows.h>
+#include <direct.h>
+#define mkdir _mkdir
+#define rmdir _rmdir
+#else
+#include <unistd.h>
+#include <limits.h>
+#endif
 #include "files.h"
 #include "BPlusTree.h"
 #include "hashes.h"
 #define MAX_LINE_LENGTH 256
+
+void printProgressBar(int current, int total) {
+    int percentage = (current * 100) / total;
+    int width = 50; // 進度條的寬度
+    int pos = width * percentage / 100;
+    
+    printf("[");
+    for (int i = 0; i < width; ++i) {
+        if (i < pos) {
+            printf("=");
+        } else if (i == pos) {
+            printf(">");
+        } else {
+            printf(" ");
+        }
+    }
+    printf("] %d%%", percentage);
+    fflush(stdout);
+}
 
 FILE *open_file(const char *filename, const char *mode)
 {
@@ -44,26 +72,22 @@ ParsedLine *parse_line(const char *line)
     }
 }
 
-void ProcessFile(const char *filename, BPlusTreeNode *root)
+void ProcessFile(const char *filename, BPlusTreeNode **root)
 {
     DataNode *data_list = NULL;
     FILE *file = open_file(filename, "r");
     char line[MAX_LINE_LENGTH];
-    printf("Reading file: %s\n", filename);
+    // printf("Reading file: %s\n", filename);
     while (fgets(line, sizeof(line), file) != NULL)
     {
         line[strcspn(line, "\n")] = '\0';
         ParsedLine *parsed = parse_line(line);
         if (parsed != NULL)
         {
-            insert(&root, parsed->id);
+            insert(root, parsed->id);
             // printf("ID: %s, Number: %d\n", parsed->id, parsed->number);
             store_data(&data_list, hash_function(parsed->id), parsed->id, parsed->number);
         }
-        // else
-        // {
-        //     fprintf(stderr, "No match found in line: %s\n", line);
-        // }
     }
     write_data_to_files(data_list);
     free_data_list(data_list);
@@ -109,7 +133,7 @@ void write_data_to_files(DataNode *head)
     while (current)
     {
         char filename[256];
-        sprintf(filename, "index/%lu_hash", current->hash_value);
+        sprintf(filename, "data/index/%lu_hash", current->hash_value);
         FILE *file = fopen(filename, "a"); // 使用追加模式
         if (!file)
         {
@@ -143,7 +167,19 @@ void store_data(DataNode **head, unsigned long hash_value, const char *student_i
     new_node->next = *head;
     *head = new_node;
 }
-// int main() {
-//     ManyFile(1);
-//     return 0;
-// }
+int create_directory(const char* dir_name) {
+    if (mkdir(dir_name, 0755) == 0) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+int delete_directory(const char* dir_name) {
+    if (rmdir(dir_name) == 0) {
+        printf("Directory '%s' deleted successfully.\n", dir_name);
+        return 0; // Success
+    } else {
+        perror("Error deleting directory");
+        return 1; // Failure
+    }
+}

@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
 #include "BPlusTree.h"
 #include "hashes.h"
-#define MAX_KEYS 3
 
 BPlusTreeNode *create_node(bool is_leaf)
 {
@@ -19,6 +17,7 @@ BPlusTreeNode *create_node(bool is_leaf)
     if (!node->keys)
     {
         perror("Failed to allocate memory for keys");
+        free(node); // Free the allocated memory before exiting
         exit(EXIT_FAILURE);
     }
 
@@ -26,6 +25,8 @@ BPlusTreeNode *create_node(bool is_leaf)
     if (!node->children)
     {
         perror("Failed to allocate memory for children");
+        free(node->keys); // Free the allocated memory before exiting
+        free(node);       // Free the allocated memory before exiting
         exit(EXIT_FAILURE);
     }
     node->n = 0;
@@ -109,7 +110,6 @@ void split_child(BPlusTreeNode *parent, int index, BPlusTreeNode *full_child)
 void insert(BPlusTreeNode **root, const char *key)
 {
     unsigned long hash_key = hash_function(key);
-    // printf("Inserting key: %s, Hash: %lu\n", key, hash_key);
     if ((*root)->n == MAX_KEYS)
     {
         BPlusTreeNode *new_root = create_node(false);
@@ -127,7 +127,7 @@ void insert(BPlusTreeNode **root, const char *key)
 bool search(BPlusTreeNode *node, const char *key)
 {
     unsigned long hash_key = hash_function(key);
-    printf("Searching key: %s, Hash: %lu\n", key, hash_key);
+    // printf("Searching key: %s, Hash: %lu\n", key, hash_key);
     int i = 0;
     while (i < node->n && hash_key > node->keys[i])
     {
@@ -139,7 +139,6 @@ bool search(BPlusTreeNode *node, const char *key)
     }
     if (node->is_leaf)
     {
-        // 当到达叶子节点时，检查下一个叶子节点
         BPlusTreeNode *next_leaf = node->next;
         while (next_leaf != NULL)
         {
@@ -178,7 +177,6 @@ void print_tree(BPlusTreeNode *node, int level)
     if (node == NULL)
         return;
 
-    // 打印当前节点
     printf("Level %d: ", level);
     for (int i = 0; i < node->n; i++)
     {
@@ -186,7 +184,6 @@ void print_tree(BPlusTreeNode *node, int level)
     }
     printf("\n");
 
-    // 递归打印子节点
     if (!node->is_leaf)
     {
         for (int i = 0; i <= node->n; i++)
@@ -194,4 +191,107 @@ void print_tree(BPlusTreeNode *node, int level)
             print_tree(node->children[i], level + 1);
         }
     }
+}
+void serialize_tree(BPlusTreeNode *node, FILE *file)
+{
+    printf("Serializing tree\n");
+    if (node == NULL)
+    {
+        int null_indicator = -1;
+        fwrite(&null_indicator, sizeof(int), 1, file);
+        return;
+    }
+
+    fwrite(&node->n, sizeof(int), 1, file);
+    fwrite(node->keys, sizeof(unsigned long), node->n, file);
+    fwrite(&node->is_leaf, sizeof(bool), 1, file);
+
+    // 序列化 next 指標
+    int has_next = (node->next != NULL);
+    fwrite(&has_next, sizeof(int), 1, file);
+
+    if (has_next)
+    {
+        serialize_tree(node->next, file);
+    }
+
+    if (!node->is_leaf)
+    {
+        for (int i = 0; i <= node->n; i++)
+        {
+            serialize_tree(node->children[i], file);
+        }
+    }
+}
+
+void save_tree(const char *filename, BPlusTreeNode *root)
+{
+    FILE *file = fopen(filename, "wb");
+    if (!file)
+    {
+        perror("Failed to open file for writing");
+        exit(EXIT_FAILURE);
+    }
+
+    serialize_tree(root, file);
+    fclose(file);
+}
+
+BPlusTreeNode *deserialize_tree(FILE *file)
+{
+    printf("Deserializing tree\n");
+    int n;
+    if (fread(&n, sizeof(int), 1, file) != 1 || n == -1)
+    {
+        return NULL;
+    }
+
+    BPlusTreeNode *node = malloc(sizeof(BPlusTreeNode));
+    node->n = n;
+    node->keys = malloc(n * sizeof(unsigned long));
+    fread(node->keys, sizeof(unsigned long), n, file);
+    fread(&node->is_leaf, sizeof(bool), 1, file);
+
+    // 反序列化 next 指標
+    int has_next;
+    fread(&has_next, sizeof(int), 1, file);
+    if (has_next)
+    {
+        node->next = deserialize_tree(file);
+    }
+    else
+    {
+        node->next = NULL;
+    }
+
+    if (!node->is_leaf)
+    {
+        node->children = malloc((n + 1) * sizeof(BPlusTreeNode *));
+        for (int i = 0; i <= n; i++)
+        {
+            node->children[i] = deserialize_tree(file);
+        }
+    }
+    else
+    {
+        node->children = NULL;
+    }
+
+    return node;
+}
+
+BPlusTreeNode *load_tree(const char *filename)
+{
+    printf("Loading B+ tree from file: %s\n", filename);
+    FILE *file = fopen(filename, "rb");
+    if (!file)
+    {
+        perror("Failed to open file for reading");
+        return NULL;
+    }
+
+    BPlusTreeNode *root = deserialize_tree(file);
+    fclose(file);
+
+    return root;
 }
