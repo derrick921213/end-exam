@@ -35,9 +35,10 @@ OBJ = $(call PATHTRANSFORM,$(WORK_DIR)/obj)
 SOURCES = $(wildcard $(SRC)$(PATHSEP)*.c)
 OBJECTS = $(patsubst $(SRC)$(PATHSEP)%.c, $(OBJ)$(PATHSEP)%.o, $(SOURCES))
 EXECUTABLE = $(BIN)$(PATHSEP)main$(EXEC_EXT)
+COUNT = 10
 .PHONY: all clean compile run directories print-vars debug
 all: directories $(EXECUTABLE)
-	@$(EXECUTABLE) $(WORK_DIR)
+	@$(EXECUTABLE) $(WORK_DIR) $(COUNT)
 $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 $(OBJ)$(PATHSEP)%.o: $(SRC)$(PATHSEP)%.c | directories
