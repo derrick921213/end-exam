@@ -51,22 +51,41 @@ void DataNode_write_files(DataNode *head,char *location,char *mode)
     }
 }
 
-void DataNode_write_index(DataNode *head,char *location,char *src)
-{
+
+void DataNode_write_index(DataNode *head, char *location, char *src) {
     DataNode *current = head;
     int index = 0;
-    while (current)
-    {
-        char filename[256];
-        sprintf(filename, "%s/%d", location, ++index);
-        FILE *file = fopen(filename, "w");
-        if (!file)
-        {
-            printf("無法創建檔案 %s\n", filename);
-            exit(EXIT_FAILURE);
+    FILE *file = NULL;
+    char filename[256];
+    
+    while (current) {
+        if (!file) {
+            sprintf(filename, "%s/%d", location, ++index);
+            file = fopen(filename, "a");
+            if (!file) {
+                printf("無法創建檔案 %s\n", filename);
+                exit(EXIT_FAILURE);
+            }
         }
-        fprintf(file, "%s %s/%lu", current->data->id,src,current->hash_value);
-        fclose(file);
+        
+        char dataToWrite[512];
+        int dataLength = snprintf(dataToWrite, sizeof(dataToWrite), "%s %s/%lu\n", current->data->id, src, current->hash_value);
+        
+        if (getFileSize(file) + dataLength > MAX_FILE_SIZE) {
+            fclose(file);
+            sprintf(filename, "%s/%d", location, ++index);
+            file = fopen(filename, "a");
+            if (!file) {
+                printf("無法創建檔案 %s\n", filename);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        fprintf(file, "%s", dataToWrite);
         current = current->next;
+    }
+
+    if (file) {
+        fclose(file);
     }
 }
