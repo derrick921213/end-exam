@@ -45,7 +45,7 @@ int initialization(void)
     return 0;
 }
 
-int changeCWD()
+int changeCWD(void)
 {
 #ifdef _WIN32
     if (SetCurrentDirectory(cwd) == 0)
