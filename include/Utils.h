@@ -23,11 +23,6 @@
 #define STUDENT_COURSDE INDEXDIR"/student_To_course"
 #define COURSE_STUDENT INDEXDIR"/course_To_student"
 #define PLACEHOLDER "Selection Action:\n1.Search Student\n2. Search Course\n0. Quit\n>> "
-typedef struct Node
-{
-    int data;
-    struct Node *next;
-} Node;
 typedef struct DataNode
 {
     unsigned long hash_value;
@@ -42,6 +37,12 @@ typedef struct ParsedLine
 typedef struct Data {
     char id[256];
 } Data;
+typedef struct INDEX
+{
+    char id[256];
+    char hash_localtion[256];
+    struct INDEX *next;
+} Index;
 void printColored(FILE *,const char *, const char *);
 void clearScreen(void);
 #endif

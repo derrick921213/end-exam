@@ -3,11 +3,11 @@
 #include "Utils.h"
 #include "hashes.h"
 
-Node *create_list_node(int);
-void list_insert(Node **, int);
-Node *list_search(Node *, int);
-void list_delete(Node **, int);
-void print_list(Node *);
+Index *create_list_node(int);
+void list_insert(Index **, int);
+Index *list_search(Index *, int);
+void list_delete(Index **, int);
+void print_list(Index *);
 void DataNode_insert(DataNode **, const char *, char *);
 void DataNode_free(DataNode *);
 void DataNode_write_files(DataNode *,char *);

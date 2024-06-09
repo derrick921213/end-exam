@@ -61,6 +61,7 @@ ParsedLine *parse_line(const char *line)
 void ProcessFile(const char *filename, BPlusTreeNode **root,BPlusTreeNode **root2)
 {
     DataNode *data_list = NULL;
+    DataNode *data_list2 = NULL;
     FILE *file = open_file(filename, "r");
     char line[MAX_LINE_LENGTH];
     while (fgets(line, sizeof(line), file) != NULL)
@@ -72,10 +73,11 @@ void ProcessFile(const char *filename, BPlusTreeNode **root,BPlusTreeNode **root
             insert(root, parsed->id);
             insert(root2, parsed->number);
             DataNode_insert(&data_list, parsed->id, parsed->number);
+            DataNode_insert(&data_list2, parsed->number, parsed->id);
         }
     }
     DataNode_write_files(data_list,STUDENT_COURSDE);
-    DataNode_write_files(data_list,COURSE_STUDENT);
+    DataNode_write_files(data_list2,COURSE_STUDENT);
     DataNode_free(data_list);
     close_file(file);
 }
@@ -150,4 +152,11 @@ bool delete_create_dir(const char **dir_name, int length)
         count++;
     }
     return GO;
+}
+long getFileSize(FILE *file) {
+    long currentPos = ftell(file);
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    fseek(file, currentPos, SEEK_SET);
+    return size;
 }

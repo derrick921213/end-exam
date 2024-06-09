@@ -19,4 +19,5 @@ void printProgressBar(int, int);
 int create_directory(const char *);
 int delete_directory(const char *);
 bool delete_create_dir(const char **,int);
+long getFileSize(FILE *);
 #endif
