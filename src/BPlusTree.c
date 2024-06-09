@@ -1,8 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include "BPlusTree.h"
-#include "hashes.h"
+
 
 BPlusTreeNode *create_node(bool is_leaf) {
     BPlusTreeNode *node = (BPlusTreeNode *)malloc(sizeof(BPlusTreeNode));

@@ -1,33 +1,21 @@
-#include "BPlusTree.h"
-#include "files.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <unistd.h>
-#include <limits.h>
-#endif
-
-#define INDEXDIR "data/index"
-#define TREEDIR "data/trees"
-#define TREEFILE TREEDIR "/bplustree"
-#define DATA "data"
+#include "main.h"
 int FILECOUNT = 0;
-BPlusTreeNode *root = NULL;
+BPlusTreeNode *Student_Course = NULL;
+BPlusTreeNode *Course_Student = NULL;
 char *cwd = NULL;
+char *input = NULL;
 
 void ManyFile(const int n)
 {
-    root = create_node(true);
+    Student_Course = create_node(true);
+    Course_Student = create_node(true);
     for (int i = 1; i <= n; i++)
     {
         printf("\r");
         printProgressBar(i, n);
         char filename[32];
-        sprintf(filename, "data/data_no_cname/%04d", i);
-        ProcessFile(filename, &root);
+        sprintf(filename, "DATA/%s/%04d", input, i);
+        ProcessFile(filename, &Student_Course, &Course_Student);
     }
     printf("\n");
 }
@@ -40,26 +28,20 @@ int initialization(void)
     }
     if (isFileExistsStats("Makefile"))
     {
-        if (isDirectoryExists(INDEXDIR))
-        {
-            if (delete_directory(INDEXDIR) != 0)
-            {
-                perror("Error deleting directory");
-                return 1;
-            }
-        }
-        create_directory(INDEXDIR);
+        const char *to_create[] = {INDEXDIR,STUDENT_TO_STUDENT_HASH,COURSE_TO_COURSE_HASH, STUDENT_COURSDE, COURSE_STUDENT};
+        int length = sizeof(to_create) / sizeof(to_create[0]);
+        delete_create_dir(to_create, length);
         ManyFile(FILECOUNT);
     }
     else
     {
-        fprintf(stderr, "Makefile not found\n");
+        printColored(stderr, "Makefile not found", "\033[31m");
         exit(EXIT_FAILURE);
     }
     return 0;
 }
 
-int changeCWD()
+int changeCWD(void)
 {
 #ifdef _WIN32
     if (SetCurrentDirectory(cwd) == 0)
@@ -79,39 +61,71 @@ int changeCWD()
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3)
+    char message[256];
+    if (argc != 4)
     {
-        fprintf(stderr, "Usage: %s <directory> <file_count>\n", argv[0]);
+        sprintf(message, "Usage: %s <directory> <number of files> <input>\n", argv[0]);
+        printColored(stderr, message, "\033[31m");
         return 1;
     }
     cwd = argv[1];
+    input = argv[3];
     FILECOUNT = atoi(argv[2]);
     changeCWD();
 
     if (initialization() != 0)
     {
-        fprintf(stderr, "Error in initialization\n");
+        printColored(stderr, "Error in initialization\n", "\033[31m");
         return 1;
     }
-    char student_id[100];
-    while (true)
+    // print_tree(root, 0);
+    char id[100];
+    printf(PLACEHOLDER);
+    int choose = 0;
+    while (scanf("%d", &choose) && choose)
     {
-        printf("Enter Student ID to search (or 'exit' to quit): ");
-        scanf("%s", student_id);
-        if (strcmp(student_id, "exit") == 0)
+        while (getchar() != '\n')
+            continue;
+        if (choose == 1)
         {
-            break;
+            printColored(stdout,"Enter Student ID to search (or 'exit' to quit): ","\033[33m");
+            scanf("%s", id);
+            if (strcmp(id, "exit") == 0)
+            {
+                break;
+            }
+            sprintf(message, "Searching for Student ID: %s\n", id);
+            printColored(stdout,message,"\033[36m");
+            if (search(Student_Course, id))
+            {
+                printColored(stdout,"Student ID found\n","\033[32m");
+            }
+            else
+            {
+                printColored(stdout,"Student ID not found\n","\033[31m");
+            }
         }
-        printf("Searching for Student ID: %s\n", student_id);
-        if (search(root, student_id))
+        else if (choose == 2)
         {
-            printf("Student ID found\n");
+            printColored(stdout,"Enter Course ID to search (or 'exit' to quit): ","\033[33m");
+            scanf("%s", id);
+            if (strcmp(id, "exit") == 0)
+            {
+                break;
+            }
+            sprintf(message, "Searching for Course ID: %s\n", id);
+            printColored(stdout,message,"\033[36m");
+            if (search(Course_Student, id))
+            {
+                printColored(stdout,"Course ID found\n","\033[32m");
+            }
+            else
+            {
+                printColored(stdout,"Course ID not found\n","\033[31m");
+            }
         }
-        else
-        {
-            printf("Student ID not found\n");
-        }
+        printf(PLACEHOLDER);
     }
-    free_node(root);
+    free_node(Student_Course);
     return 0;
 }
