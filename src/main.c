@@ -1,19 +1,21 @@
 #include "main.h"
 int FILECOUNT = 0;
-BPlusTreeNode *root = NULL;
+BPlusTreeNode *Student_Course = NULL;
+BPlusTreeNode *Course_Student = NULL;
 char *cwd = NULL;
 char *input = NULL;
 
 void ManyFile(const int n)
 {
-    root = create_node(true);
+    Student_Course = create_node(true);
+    Course_Student = create_node(false);
     for (int i = 1; i <= n; i++)
     {
         printf("\r");
         printProgressBar(i, n);
         char filename[32];
         sprintf(filename, "DATA/%s/%04d", input,i);
-        ProcessFile(filename, &root);
+        ProcessFile(filename, &Student_Course, &Course_Student);
     }
     printf("\n");
 }
@@ -85,7 +87,7 @@ int main(int argc, char *argv[])
             break;
         }
         printf("Searching for Student ID: %s\n", student_id);
-        if (search(root, student_id))
+        if (search(Student_Course, student_id))
         {
             printf("Student ID found\n");
         }
@@ -94,6 +96,6 @@ int main(int argc, char *argv[])
             printf("Student ID not found\n");
         }
     }
-    free_node(root);
+    free_node(Student_Course);
     return 0;
 }

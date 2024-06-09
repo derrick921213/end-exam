@@ -61,7 +61,7 @@ void print_list(Node *head)
     printf("NULL\n");
 }
 
-void DataNode_insert(DataNode **head, const char *student_id, int course_id)
+void DataNode_insert(DataNode **head, const char *student_id, char *course_id)
 {
     unsigned long hash_value = hash_function(student_id);
     DataNode *new_node = (DataNode *)malloc(sizeof(DataNode));
@@ -79,7 +79,7 @@ void DataNode_insert(DataNode **head, const char *student_id, int course_id)
     }
     new_node->hash_value = hash_value;
     strcpy(new_node->data->id, student_id);
-    new_node->data->number = course_id;
+    strcpy(new_node->data->number ,course_id);
     new_node->next = *head;
     *head = new_node;
 }
@@ -91,5 +91,23 @@ void DataNode_free(DataNode *head)
         DataNode *next = current->next;
         free(current);
         current = next;
+    }
+}
+void DataNode_write_files(DataNode *head,char *location)
+{
+    DataNode *current = head;
+    while (current)
+    {
+        char filename[256];
+        sprintf(filename, "%s/%lu", location, current->hash_value);
+        FILE *file = fopen(filename, "a");
+        if (!file)
+        {
+            printf("無法創建檔案 %s\n", filename);
+            current = current->next;
+        }
+        fprintf(file, "%s\n", current->data->number);
+        fclose(file);
+        current = current->next;
     }
 }

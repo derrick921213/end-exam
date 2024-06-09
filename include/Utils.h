@@ -34,7 +34,7 @@ typedef struct DataNode
 typedef struct ParsedLine
 {
     char id[32];
-    int number;
+    char number[50];
 } ParsedLine;
 typedef struct Data {
     char id[256];

@@ -8,6 +8,7 @@ void list_insert(Node **, int);
 Node *list_search(Node *, int);
 void list_delete(Node **, int);
 void print_list(Node *);
-void DataNode_insert(DataNode **, const char *, int);
+void DataNode_insert(DataNode **, const char *, char *);
 void DataNode_free(DataNode *);
+void DataNode_write_files(DataNode *,char *);
 #endif

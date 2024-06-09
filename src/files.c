@@ -46,8 +46,10 @@ ParsedLine *parse_line(const char *line)
         fprintf(stderr, "Error: Unable to allocate memory\n");
         exit(1);
     }
-    if (sscanf(line, "%31[^,],%d", parsed->id, &parsed->number) == 2)
+    int number = 0;
+    if (sscanf(line, "%31[^,],%d", parsed->id, &number) == 2)
     {
+        sprintf(parsed->number, "%d", number);
         return parsed;
     }
     else
@@ -56,7 +58,7 @@ ParsedLine *parse_line(const char *line)
         return NULL;
     }
 }
-void ProcessFile(const char *filename, BPlusTreeNode **root)
+void ProcessFile(const char *filename, BPlusTreeNode **root,BPlusTreeNode **root2)
 {
     DataNode *data_list = NULL;
     FILE *file = open_file(filename, "r");
@@ -71,7 +73,7 @@ void ProcessFile(const char *filename, BPlusTreeNode **root)
             DataNode_insert(&data_list, parsed->id, parsed->number);
         }
     }
-    write_data_to_files(data_list);
+    DataNode_write_files(data_list,STUDENT_COURSDE);
     DataNode_free(data_list);
     close_file(file);
 }
@@ -96,24 +98,7 @@ int isFileExistsStats(const char *path)
     }
     return 0;
 }
-void write_data_to_files(DataNode *head)
-{
-    DataNode *current = head;
-    while (current)
-    {
-        char filename[256];
-        sprintf(filename, "%s/%lu", STUDENT_COURSDE, current->hash_value);
-        FILE *file = fopen(filename, "a"); // 使用追加模式
-        if (!file)
-        {
-            printf("無法創建檔案 %s\n", filename);
-            current = current->next;
-        }
-        fprintf(file, "%d\n", current->data->number); // 將課程ID寫入哈希文件
-        fclose(file);
-        current = current->next;
-    }
-}
+
 int create_directory(const char *dir_name)
 {
 #ifdef _WIN32
