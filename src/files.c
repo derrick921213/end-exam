@@ -1,28 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#ifdef _WIN32
-#include <windows.h>
-#include <direct.h>
-#define mkdir _mkdir
-#define rmdir _rmdir
-#else
-#include <unistd.h>
-#include <limits.h>
-#endif
 #include "files.h"
-#include "BPlusTree.h"
-#include "hashes.h"
+
 #define MAX_LINE_LENGTH 256
 
 void printProgressBar(int current, int total)
 {
     int percentage = (current * 100) / total;
-    int width = 50; // 進度條的寬度
+    int width = 50;
     int pos = width * percentage / 100;
-
     printf("[");
     for (int i = 0; i < width; ++i)
     {
@@ -91,6 +75,7 @@ void ProcessFile(const char *filename, BPlusTreeNode **root)
         ParsedLine *parsed = parse_line(line);
         if (parsed != NULL)
         {
+            // printf("Inserting %s\n", parsed->id);
             insert(root, parsed->id);
             // printf("ID: %s, Number: %d\n", parsed->id, parsed->number);
             store_data(&data_list, hash_function(parsed->id), parsed->id, parsed->number);

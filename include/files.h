@@ -1,7 +1,10 @@
 #ifndef FILES_H
 #define FILES_H
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "BPlusTree.h"
-#include <stdio.h>
+#include "Utils.h"
+#include "hashes.h"
 typedef struct
 {
     char id[32];

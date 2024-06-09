@@ -38,7 +38,11 @@ EXECUTABLE = $(BIN)$(PATHSEP)main$(EXEC_EXT)
 COUNT = 10
 .PHONY: all clean compile run directories print-vars debug
 all: directories $(EXECUTABLE)
+ifndef ARGS
 	@$(EXECUTABLE) $(WORK_DIR) $(COUNT)
+else
+	@$(EXECUTABLE) $(WORK_DIR) $(COUNT) $(ARGS)
+endif
 $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $^
 $(OBJ)$(PATHSEP)%.o: $(SRC)$(PATHSEP)%.c | directories
@@ -52,7 +56,11 @@ ifndef TARGET
 endif
 	$(CC) $(CFLAGS) -o $(BIN)$(PATHSEP)$(TARGET)$(EXEC_EXT) $(SRC)$(PATHSEP)$(TARGET).c
 run: compile
+ifndef ARGS
 	$(BIN)$(PATHSEP)$(TARGET)$(EXEC_EXT)
+else
+	$(BIN)$(PATHSEP)$(TARGET)$(EXEC_EXT) $(ARGS)
+endif
 clean:
 	$(RM) $(BIN)$(PATHSEP)*$(EXEC_EXT) $(OBJ)$(PATHSEP)*.o
 debug:

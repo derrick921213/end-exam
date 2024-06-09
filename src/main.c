@@ -1,22 +1,8 @@
-#include "BPlusTree.h"
-#include "files.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <unistd.h>
-#include <limits.h>
-#endif
-
-#define INDEXDIR "data/index"
-#define TREEDIR "data/trees"
-#define TREEFILE TREEDIR "/bplustree"
-#define DATA "data"
+#include "main.h"
 int FILECOUNT = 0;
 BPlusTreeNode *root = NULL;
 char *cwd = NULL;
+char *input = NULL;
 
 void ManyFile(const int n)
 {
@@ -26,7 +12,7 @@ void ManyFile(const int n)
         printf("\r");
         printProgressBar(i, n);
         char filename[32];
-        sprintf(filename, "data/data_no_cname/%04d", i);
+        sprintf(filename, "DATA/%s/%04d", input,i);
         ProcessFile(filename, &root);
     }
     printf("\n");
@@ -79,12 +65,13 @@ int changeCWD()
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3)
+    if (argc != 4)
     {
-        fprintf(stderr, "Usage: %s <directory> <file_count>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <directory> <file_count> <input>\n", argv[0]);
         return 1;
     }
     cwd = argv[1];
+    input = argv[3];
     FILECOUNT = atoi(argv[2]);
     changeCWD();
 
@@ -93,6 +80,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Error in initialization\n");
         return 1;
     }
+    // print_tree(root, 0);
     char student_id[100];
     while (true)
     {

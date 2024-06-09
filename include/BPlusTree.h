@@ -1,11 +1,11 @@
 #ifndef BPLUSTREE_H
 #define BPLUSTREE_H
-
-#include <stdbool.h>
-
+#include "Utils.h"
+#include "hashes.h"
 #define MAX_KEYS 3
 
-typedef struct BPlusTreeNode {
+typedef struct BPlusTreeNode
+{
     unsigned long *keys;
     struct BPlusTreeNode **children;
     struct BPlusTreeNode *next;
@@ -20,6 +20,6 @@ void free_node(BPlusTreeNode *node);
 void print_tree(BPlusTreeNode *node, int level);
 void save_tree(const char *filename, BPlusTreeNode *root);
 BPlusTreeNode *load_tree(const char *filename);
-void split_child(BPlusTreeNode *, int , BPlusTreeNode *);
+void split_child(BPlusTreeNode *, int, BPlusTreeNode *);
 
 #endif // BPLUSTREE_H
