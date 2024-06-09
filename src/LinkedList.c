@@ -1,66 +1,4 @@
 #include "LinkedList.h"
-// Index *create_list_node(int data)
-// {
-//     Index *node = (Index *)malloc(sizeof(Index));
-//     if (!node)
-//     {
-//         perror("Memory allocation failed");
-//         exit(EXIT_FAILURE);
-//     }
-//     node->data = data;
-//     node->next = NULL;
-//     return node;
-// }
-// void list_insert(Index **head, int data)
-// {
-//     Node *new_node = create_list_node(data);
-//     if (!new_node)
-//         return;
-//     new_node->next = *head;
-//     *head = new_node;
-// }
-// Index *list_search(Index *head, int data)
-// {
-//     Node *current = head;
-//     while (current != NULL)
-//     {
-//         if (current->data == data)
-//             return current;
-//         current = current->next;
-//     }
-//     return NULL;
-// }
-// void list_delete(Index **head, int data)
-// {
-//     Node *temp = *head;
-//     Node *prev = NULL;
-//     if (temp != NULL && temp->data == data)
-//     {
-//         *head = temp->next;
-//         free(temp);
-//         return;
-//     }
-//     while (temp != NULL && temp->data != data)
-//     {
-//         prev = temp;
-//         temp = temp->next;
-//     }
-//     if (temp == NULL)
-//         return;
-//     prev->next = temp->next;
-//     free(temp);
-// }
-// void print_list(Index *head)
-// {
-//     Node *current = head;
-//     while (current != NULL)
-//     {
-//         printf("%d -> ", current->data);
-//         current = current->next;
-//     }
-//     printf("NULL\n");
-// }
-
 void DataNode_insert(DataNode **head, const char *student_id, char *course_id)
 {
     unsigned long hash_value = hash_function(student_id);
@@ -93,20 +31,41 @@ void DataNode_free(DataNode *head)
         current = next;
     }
 }
-void DataNode_write_files(DataNode *head,char *location)
+
+void DataNode_write_files(DataNode *head,char *location,char *mode)
 {
     DataNode *current = head;
     while (current)
     {
         char filename[256];
         sprintf(filename, "%s/%lu", location, current->hash_value);
-        FILE *file = fopen(filename, "a");
+        FILE *file = fopen(filename, mode);
         if (!file)
         {
             printf("無法創建檔案 %s\n", filename);
-            current = current->next;
+            exit(EXIT_FAILURE);
         }
         fprintf(file, "%s\n", current->data->number);
+        fclose(file);
+        current = current->next;
+    }
+}
+
+void DataNode_write_index(DataNode *head,char *location,char *src)
+{
+    DataNode *current = head;
+    int index = 0;
+    while (current)
+    {
+        char filename[256];
+        sprintf(filename, "%s/%d", location, ++index);
+        FILE *file = fopen(filename, "w");
+        if (!file)
+        {
+            printf("無法創建檔案 %s\n", filename);
+            exit(EXIT_FAILURE);
+        }
+        fprintf(file, "%s %s/%lu", current->data->id,src,current->hash_value);
         fclose(file);
         current = current->next;
     }

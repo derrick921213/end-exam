@@ -22,7 +22,9 @@
 #define DATA "data"
 #define STUDENT_COURSDE INDEXDIR"/student_To_course"
 #define COURSE_STUDENT INDEXDIR"/course_To_student"
-#define PLACEHOLDER "Selection Action:\n1.Search Student\n2. Search Course\n0. Quit\n>> "
+#define STUDENT_TO_STUDENT_HASH INDEXDIR"/student_To_student_hash"
+#define COURSE_TO_COURSE_HASH INDEXDIR"/course_To_course_hash"
+#define PLACEHOLDER "Selection Action:\n1. Search Student\n2. Search Course\n0. Quit\n>> "
 typedef struct DataNode
 {
     unsigned long hash_value;
@@ -42,7 +44,7 @@ typedef struct INDEX
     char id[256];
     char hash_localtion[256];
     struct INDEX *next;
-} Index;
+} INDEX;
 void printColored(FILE *,const char *, const char *);
 void clearScreen(void);
 #endif

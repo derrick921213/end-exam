@@ -28,7 +28,7 @@ int initialization(void)
     }
     if (isFileExistsStats("Makefile"))
     {
-        const char *to_create[] = {INDEXDIR, STUDENT_COURSDE, COURSE_STUDENT};
+        const char *to_create[] = {INDEXDIR,STUDENT_TO_STUDENT_HASH,COURSE_TO_COURSE_HASH, STUDENT_COURSDE, COURSE_STUDENT};
         int length = sizeof(to_create) / sizeof(to_create[0]);
         delete_create_dir(to_create, length);
         ManyFile(FILECOUNT);
@@ -107,13 +107,14 @@ int main(int argc, char *argv[])
         }
         else if (choose == 2)
         {
-            printf("Enter Course ID to search (or 'exit' to quit): ");
+            printColored(stdout,"Enter Course ID to search (or 'exit' to quit): ","\033[33m");
             scanf("%s", id);
             if (strcmp(id, "exit") == 0)
             {
                 break;
             }
-            printf("Searching for Student ID: %s\n", id);
+            sprintf(message, "Searching for Course ID: %s\n", id);
+            printColored(stdout,message,"\033[36m");
             if (search(Course_Student, id))
             {
                 printColored(stdout,"Course ID found\n","\033[32m");
