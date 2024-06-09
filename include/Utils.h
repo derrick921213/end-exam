@@ -18,4 +18,6 @@
 #define TREEDIR "data/trees"
 #define TREEFILE TREEDIR "/bplustree"
 #define DATA "data"
+#define STUDENT_COURSDE INDEXDIR"/student_To_course"
+#define COURSE_STUDENT INDEXDIR"/course_To_student"
 #endif

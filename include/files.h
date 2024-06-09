@@ -5,17 +5,13 @@
 #include "BPlusTree.h"
 #include "Utils.h"
 #include "hashes.h"
-typedef struct
+#include "LinkedList.h"
+#define MAX_LINE_LENGTH 256
+typedef struct ParsedLine
 {
     char id[32];
     int number;
 } ParsedLine;
-typedef struct DataNode
-{
-    unsigned long hash_value;
-    ParsedLine *data;
-    struct DataNode *next;
-} DataNode;
 FILE *open_file(const char *, const char *);
 void close_file(FILE *);
 ParsedLine *parse_line(const char *);
@@ -29,4 +25,5 @@ void printProgressBar(int, int);
 void store_data(DataNode **, unsigned long, const char *, int);
 int create_directory(const char *);
 int delete_directory(const char *);
+bool delete_create_dir(const char **,int);
 #endif

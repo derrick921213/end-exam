@@ -26,15 +26,9 @@ int initialization(void)
     }
     if (isFileExistsStats("Makefile"))
     {
-        if (isDirectoryExists(INDEXDIR))
-        {
-            if (delete_directory(INDEXDIR) != 0)
-            {
-                perror("Error deleting directory");
-                return 1;
-            }
-        }
-        create_directory(INDEXDIR);
+        const char* to_create[] = {INDEXDIR, STUDENT_COURSDE,COURSE_STUDENT};
+        int length = sizeof(to_create) / sizeof(to_create[0]);
+        delete_create_dir(to_create, length);
         ManyFile(FILECOUNT);
     }
     else

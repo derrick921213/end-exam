@@ -1,6 +1,6 @@
 #include "files.h"
 
-#define MAX_LINE_LENGTH 256
+
 
 void printProgressBar(int current, int total)
 {
@@ -125,7 +125,7 @@ void write_data_to_files(DataNode *head)
     while (current)
     {
         char filename[256];
-        sprintf(filename, "data/index/%lu_hash", current->hash_value);
+        sprintf(filename, "%s/%lu", STUDENT_COURSDE, current->hash_value);
         FILE *file = fopen(filename, "a"); // 使用追加模式
         if (!file)
         {
@@ -188,4 +188,25 @@ int delete_directory(const char *dir_name)
 #endif
     status = system(command);
     return status;
+}
+
+bool delete_create_dir(const char **dir_name,int length)
+{
+    bool GO = false;
+    int count = 0;
+    while(count < length)
+    {
+        if (isDirectoryExists(dir_name[count]))
+        {
+            if (delete_directory(dir_name[count]) != 0)
+            {
+                perror("Error deleting directory");
+                break;
+            }
+        }
+        create_directory(dir_name[count]);
+        GO = true;
+        count++;
+    }
+    return GO;
 }
