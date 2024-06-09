@@ -8,13 +8,13 @@ char *input = NULL;
 void ManyFile(const int n)
 {
     Student_Course = create_node(true);
-    Course_Student = create_node(false);
+    Course_Student = create_node(true);
     for (int i = 1; i <= n; i++)
     {
         printf("\r");
         printProgressBar(i, n);
         char filename[32];
-        sprintf(filename, "DATA/%s/%04d", input,i);
+        sprintf(filename, "DATA/%s/%04d", input, i);
         ProcessFile(filename, &Student_Course, &Course_Student);
     }
     printf("\n");
@@ -28,14 +28,14 @@ int initialization(void)
     }
     if (isFileExistsStats("Makefile"))
     {
-        const char* to_create[] = {INDEXDIR, STUDENT_COURSDE,COURSE_STUDENT};
+        const char *to_create[] = {INDEXDIR, STUDENT_COURSDE, COURSE_STUDENT};
         int length = sizeof(to_create) / sizeof(to_create[0]);
         delete_create_dir(to_create, length);
         ManyFile(FILECOUNT);
     }
     else
     {
-        fprintf(stderr, "Makefile not found\n");
+        printColored(stderr, "Makefile not found", "\033[31m");
         exit(EXIT_FAILURE);
     }
     return 0;
@@ -61,9 +61,11 @@ int changeCWD(void)
 
 int main(int argc, char *argv[])
 {
+    char message[256];
     if (argc != 4)
     {
-        fprintf(stderr, "Usage: %s <directory> <file_count> <input>\n", argv[0]);
+        sprintf(message, "Usage: %s <directory> <number of files> <input>\n", argv[0]);
+        printColored(stderr, message, "\033[31m");
         return 1;
     }
     cwd = argv[1];
@@ -73,28 +75,55 @@ int main(int argc, char *argv[])
 
     if (initialization() != 0)
     {
-        fprintf(stderr, "Error in initialization\n");
+        printColored(stderr, "Error in initialization\n", "\033[31m");
         return 1;
     }
     // print_tree(root, 0);
-    char student_id[100];
-    while (true)
+    char id[100];
+    printf(PLACEHOLDER);
+    int choose = 0;
+    while (scanf("%d", &choose) && choose)
     {
-        printf("Enter Student ID to search (or 'exit' to quit): ");
-        scanf("%s", student_id);
-        if (strcmp(student_id, "exit") == 0)
+        while (getchar() != '\n')
+            continue;
+        if (choose == 1)
         {
-            break;
+            printColored(stdout,"Enter Student ID to search (or 'exit' to quit): ","\033[33m");
+            scanf("%s", id);
+            if (strcmp(id, "exit") == 0)
+            {
+                break;
+            }
+            sprintf(message, "Searching for Student ID: %s\n", id);
+            printColored(stdout,message,"\033[36m");
+            if (search(Student_Course, id))
+            {
+                printColored(stdout,"Student ID found\n","\033[32m");
+            }
+            else
+            {
+                printColored(stdout,"Student ID not found\n","\033[31m");
+            }
         }
-        printf("Searching for Student ID: %s\n", student_id);
-        if (search(Student_Course, student_id))
+        else if (choose == 2)
         {
-            printf("Student ID found\n");
+            printf("Enter Course ID to search (or 'exit' to quit): ");
+            scanf("%s", id);
+            if (strcmp(id, "exit") == 0)
+            {
+                break;
+            }
+            printf("Searching for Student ID: %s\n", id);
+            if (search(Course_Student, id))
+            {
+                printColored(stdout,"Course ID found\n","\033[32m");
+            }
+            else
+            {
+                printColored(stdout,"Course ID not found\n","\033[31m");
+            }
         }
-        else
-        {
-            printf("Student ID not found\n");
-        }
+        printf(PLACEHOLDER);
     }
     free_node(Student_Course);
     return 0;

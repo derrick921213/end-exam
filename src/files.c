@@ -70,10 +70,12 @@ void ProcessFile(const char *filename, BPlusTreeNode **root,BPlusTreeNode **root
         if (parsed != NULL)
         {
             insert(root, parsed->id);
+            insert(root2, parsed->number);
             DataNode_insert(&data_list, parsed->id, parsed->number);
         }
     }
     DataNode_write_files(data_list,STUDENT_COURSDE);
+    DataNode_write_files(data_list,COURSE_STUDENT);
     DataNode_free(data_list);
     close_file(file);
 }
