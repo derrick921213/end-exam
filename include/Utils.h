@@ -20,4 +20,23 @@
 #define DATA "data"
 #define STUDENT_COURSDE INDEXDIR"/student_To_course"
 #define COURSE_STUDENT INDEXDIR"/course_To_student"
+typedef struct Node
+{
+    int data;
+    struct Node *next;
+} Node;
+typedef struct DataNode
+{
+    unsigned long hash_value;
+    struct ParsedLine *data;
+    struct DataNode *next;
+} DataNode;
+typedef struct ParsedLine
+{
+    char id[32];
+    int number;
+} ParsedLine;
+typedef struct Data {
+    char id[256];
+} Data;
 #endif

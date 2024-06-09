@@ -1,5 +1,5 @@
 #include "LinkedList.h"
-Node *create_node(int data)
+Node *create_list_node(int data)
 {
     Node *node = (Node *)malloc(sizeof(Node));
     if (!node)
@@ -13,7 +13,7 @@ Node *create_node(int data)
 }
 void list_insert(Node **head, int data)
 {
-    Node *new_node = create_node(data);
+    Node *new_node = create_list_node(data);
     if (!new_node)
         return;
     new_node->next = *head;
@@ -50,11 +50,46 @@ void list_delete(Node **head, int data)
     prev->next = temp->next;
     free(temp);
 }
-void print_list(Node* head) {
-    Node* current = head;
-    while (current != NULL) {
+void print_list(Node *head)
+{
+    Node *current = head;
+    while (current != NULL)
+    {
         printf("%d -> ", current->data);
         current = current->next;
     }
     printf("NULL\n");
+}
+
+void DataNode_insert(DataNode **head, const char *student_id, int course_id)
+{
+    unsigned long hash_value = hash_function(student_id);
+    DataNode *new_node = (DataNode *)malloc(sizeof(DataNode));
+    if (!new_node)
+    {
+        perror("Failed to allocate memory for DataNode");
+        exit(EXIT_FAILURE);
+    }
+    new_node->data = (ParsedLine *)malloc(sizeof(ParsedLine));
+    if (!new_node->data)
+    {
+        perror("Failed to allocate memory for ParsedLine");
+        free(new_node);
+        exit(EXIT_FAILURE);
+    }
+    new_node->hash_value = hash_value;
+    strcpy(new_node->data->id, student_id);
+    new_node->data->number = course_id;
+    new_node->next = *head;
+    *head = new_node;
+}
+void DataNode_free(DataNode *head)
+{
+    DataNode *current = head;
+    while (current)
+    {
+        DataNode *next = current->next;
+        free(current);
+        current = next;
+    }
 }
