@@ -125,7 +125,10 @@ void Write_terminal(const char *filename,char *id){
         fclose(file);
         Now_Index++;
     }
-    printf("Student ID Hash_Value :%lu", hash_value);
+    char message[256];
+    sprintf(message, "Student ID Hash_Value :%lu", hash_value);
+    // printf("Student ID Hash_Value :%lu", hash_value);
+    printColored(stdout, message, MAG);
     sort_and_write_data(data, data_count, ANSWER);
     free(data);
 }

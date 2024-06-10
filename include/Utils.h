@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "Color.h"
 #ifdef _WIN32
 #include <windows.h>
 #include <direct.h>

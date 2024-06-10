@@ -35,7 +35,7 @@ int initialization(void)
     }
     else
     {
-        printColored(stderr, "Makefile not found", "\033[31m");
+        printColored(stderr, "Makefile not found", RED);
         exit(EXIT_FAILURE);
     }
     return 0;
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     if (argc != 4)
     {
         sprintf(message, "Usage: %s <directory> <number of files> <input>\n", argv[0]);
-        printColored(stderr, message, "\033[31m");
+        printColored(stderr, message, RED);
         return 1;
     }
     cwd = argv[1];
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 
     if (initialization() != 0)
     {
-        printColored(stderr, "Error in initialization\n", "\033[31m");
+        printColored(stderr, "Error in initialization\n", RED);
         return 1;
     }
     // print_tree(root, 0);
@@ -88,42 +88,42 @@ int main(int argc, char *argv[])
             continue;
         if (choose == 1)
         {
-            printColored(stdout,"Enter Student ID to search (or 'exit' to quit): ","\033[33m");
+            printColored(stdout,"Enter Student ID to search (or 'exit' to quit): ",YEL);
             scanf("%s", id);
             if (strcmp(id, "exit") == 0)
             {
                 break;
             }
             sprintf(message, "Searching for Student ID: %s\n", id);
-            printColored(stdout,message,"\033[36m");
+            printColored(stdout,message,CYN);
             if (search(Student_Course, id))
             {
-                printColored(stdout,"Student ID found\n","\033[32m");
+                printColored(stdout,"Student ID found\n",GRN);
                 Write_terminal(STUDENT_COURSDE,id);
             }
             else
             {
-                printColored(stdout,"Student ID not found\n","\033[31m");
+                printColored(stdout,"Student ID not found\n",RED);
             }
         }
         else if (choose == 2)
         {
-            printColored(stdout,"Enter Course ID to search (or 'exit' to quit): ","\033[33m");
+            printColored(stdout,"Enter Course ID to search (or 'exit' to quit): ",YEL);
             scanf("%s", id);
             if (strcmp(id, "exit") == 0)
             {
                 break;
             }
             sprintf(message, "Searching for Course ID: %s\n", id);
-            printColored(stdout,message,"\033[36m");
+            printColored(stdout,message,CYN);
             if (search(Course_Student, id))
             {
-                printColored(stdout,"Course ID found\n","\033[32m");
+                printColored(stdout,"Course ID found\n",GRN);
                 Write_terminal(COURSE_STUDENT,id);
             }
             else
             {
-                printColored(stdout,"Course ID not found\n","\033[31m");
+                printColored(stdout,"Course ID not found\n",RED);
             }
         }
         printf(PLACEHOLDER);

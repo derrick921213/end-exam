@@ -96,7 +96,7 @@ void DataNode_write_index(DataNode *head, char *location, char *src, int *split_
     
     while (current) {
         if (!file) {
-            sprintf(filename, "%s/%d", location, ++index);
+            sprintf(filename, "%s/%d", location, ++(*split_index));
             file = fopen(filename, "a");
             if (!file)
             {
