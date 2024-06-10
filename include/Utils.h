@@ -25,6 +25,7 @@
 #define STUDENT_TO_STUDENT_HASH INDEXDIR"/student_To_student_hash"
 #define COURSE_TO_COURSE_HASH INDEXDIR"/course_To_course_hash"
 #define PLACEHOLDER "Selection Action:\n1. Search Student\n2. Search Course\n0. Quit\n>> "
+#define ANSWER DATA"/answer"
 typedef struct DataNode
 {
     unsigned long hash_value;

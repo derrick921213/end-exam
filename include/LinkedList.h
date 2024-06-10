@@ -6,6 +6,6 @@
 #define MAX_FILE_SIZE 2048
 void DataNode_insert(DataNode **, const char *, char *);
 void DataNode_free(DataNode *);
-void DataNode_write_files(DataNode *, char *, char *);
-void DataNode_write_index(DataNode *, char *, char *,int *);
+void DataNode_write_files(DataNode *, char *);
+void DataNode_write_index(DataNode *, char *, char *, int *);
 #endif
