@@ -1,4 +1,6 @@
 #include "files.h"
+int split_index1 = 0;
+int split_index2 = 0;
 
 void printProgressBar(int current, int total)
 {
@@ -62,6 +64,7 @@ void ProcessFile(const char *filename, BPlusTreeNode **root,BPlusTreeNode **root
 {
     DataNode *data_list = NULL;
     DataNode *data_list2 = NULL;
+    
     FILE *file = open_file(filename, "r");
     char line[MAX_LINE_LENGTH];
     while (fgets(line, sizeof(line), file) != NULL)
@@ -76,10 +79,10 @@ void ProcessFile(const char *filename, BPlusTreeNode **root,BPlusTreeNode **root
             DataNode_insert(&data_list2, parsed->number, parsed->id);
         }
     }
-    DataNode_write_files(data_list,STUDENT_COURSDE,"a");
-    DataNode_write_files(data_list2,COURSE_STUDENT,"a");
-    DataNode_write_index(data_list,STUDENT_TO_STUDENT_HASH,STUDENT_COURSDE);
-    DataNode_write_index(data_list2,COURSE_TO_COURSE_HASH,COURSE_STUDENT);
+    DataNode_write_files(data_list,STUDENT_COURSDE);
+    DataNode_write_files(data_list2,COURSE_STUDENT);
+    DataNode_write_index(data_list,STUDENT_TO_STUDENT_HASH,STUDENT_COURSDE,&split_index1);
+    DataNode_write_index(data_list2,COURSE_TO_COURSE_HASH,COURSE_STUDENT,&split_index2);
     DataNode_free(data_list);
     DataNode_free(data_list2);
     close_file(file);

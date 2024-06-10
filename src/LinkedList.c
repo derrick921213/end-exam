@@ -1,4 +1,5 @@
 #include "LinkedList.h"
+
 void DataNode_insert(DataNode **head, const char *student_id, char *course_id)
 {
     unsigned long hash_value = hash_function(student_id);
@@ -32,35 +33,71 @@ void DataNode_free(DataNode *head)
     }
 }
 
-void DataNode_write_files(DataNode *head,char *location,char *mode)
-{
+void DataNode_write_files(DataNode *head, char *location) {
     DataNode *current = head;
-    while (current)
-    {
+    int Split_Index = 0;
+
+    while (current) {
         char filename[256];
+        char count[256];
+        FILE *countfile = NULL;
+
         sprintf(filename, "%s/%lu", location, current->hash_value);
-        FILE *file = fopen(filename, mode);
-        if (!file)
-        {
-            printf("無法創建檔案 %s\n", filename);
+        sprintf(count, "%s/%lu/count", location, current->hash_value);
+
+        if (!isDirectoryExists(filename)) {
+            create_directory(filename);
+        }
+
+        if (!isFileExistsStats(count)) {
+            Split_Index = 0;
+            countfile = fopen(count, "wb+");
+        } else {
+            countfile = fopen(count, "rb+");
+            fread(&Split_Index, sizeof(int), 1, countfile);
+            fclose(countfile);
+            countfile = fopen(count, "wb+");
+            // printf("Split_Index: %d\n", Split_Index);
+        }
+
+        sprintf(filename, "%s/%lu/%d", location, current->hash_value, Split_Index);
+        FILE *file = fopen(filename, "a");
+        if (!file) {
+            printf("Cannot create data %s\n", filename);
             exit(EXIT_FAILURE);
         }
+
+        char dataToWrite[512];
+        int dataLength = snprintf(dataToWrite, sizeof(dataToWrite), "%s\n", current->data->number);
+        if (getFileSize(file) + dataLength > MAX_FILE_SIZE) {
+            fclose(file);
+            sprintf(filename, "%s/%lu/%d", location, current->hash_value, ++Split_Index);
+            file = fopen(filename, "a");
+            if (!file) {
+                printf("Cannot create file %s\n", filename);
+                exit(EXIT_FAILURE);
+            }
+        }
+
         fprintf(file, "%s\n", current->data->number);
+        fwrite(&Split_Index, sizeof(int), 1, countfile);
         fclose(file);
+        fclose(countfile);
+
         current = current->next;
     }
 }
 
 
-void DataNode_write_index(DataNode *head, char *location, char *src) {
+void DataNode_write_index(DataNode *head, char *location, char *src, int *split_index) {
     DataNode *current = head;
-    int index = 0;
+    
     FILE *file = NULL;
     char filename[256];
     
     while (current) {
         if (!file) {
-            sprintf(filename, "%s/%d", location, ++index);
+            sprintf(filename, "%s/%d", location, ++(*split_index));
             file = fopen(filename, "a");
             if (!file) {
                 printf("無法創建檔案 %s\n", filename);
@@ -73,7 +110,7 @@ void DataNode_write_index(DataNode *head, char *location, char *src) {
         
         if (getFileSize(file) + dataLength > MAX_FILE_SIZE) {
             fclose(file);
-            sprintf(filename, "%s/%d", location, ++index);
+            sprintf(filename, "%s/%d", location, ++(*split_index));
             file = fopen(filename, "a");
             if (!file) {
                 printf("無法創建檔案 %s\n", filename);
