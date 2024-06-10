@@ -1,5 +1,6 @@
 #include "files.h"
-
+int split_index = 0;
+int split_index2 = 0;
 void printProgressBar(int current, int total)
 {
     int percentage = (current * 100) / total;
@@ -78,8 +79,8 @@ void ProcessFile(const char *filename, BPlusTreeNode **root,BPlusTreeNode **root
     }
     DataNode_write_files(data_list,STUDENT_COURSDE,"a");
     DataNode_write_files(data_list2,COURSE_STUDENT,"a");
-    DataNode_write_index(data_list,STUDENT_TO_STUDENT_HASH,STUDENT_COURSDE);
-    DataNode_write_index(data_list2,COURSE_TO_COURSE_HASH,COURSE_STUDENT);
+    DataNode_write_index(data_list,STUDENT_TO_STUDENT_HASH,STUDENT_COURSDE,&split_index);
+    DataNode_write_index(data_list2,COURSE_TO_COURSE_HASH,COURSE_STUDENT,&split_index2);
     DataNode_free(data_list);
     DataNode_free(data_list2);
     close_file(file);

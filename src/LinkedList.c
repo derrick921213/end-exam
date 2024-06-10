@@ -17,22 +17,21 @@ void DataNode_insert(DataNode **head, const char *student_id, char *course_id)
     }
     new_node->hash_value = hash_value;
     strcpy(new_node->data->id, student_id);
-    strcpy(new_node->data->number ,course_id);
+    strcpy(new_node->data->number, course_id);
     new_node->next = *head;
     *head = new_node;
 }
-void DataNode_free(DataNode *head)
-{
+void DataNode_free(DataNode *head) {
     DataNode *current = head;
-    while (current)
-    {
+    while (current) {
         DataNode *next = current->next;
+        free(current->data);
         free(current);
         current = next;
     }
 }
 
-void DataNode_write_files(DataNode *head,char *location,char *mode)
+void DataNode_write_files(DataNode *head, char *location, char *mode)
 {
     DataNode *current = head;
     while (current)
@@ -51,41 +50,47 @@ void DataNode_write_files(DataNode *head,char *location,char *mode)
     }
 }
 
-
-void DataNode_write_index(DataNode *head, char *location, char *src) {
+void DataNode_write_index(DataNode *head, char *location, char *src,int *split_index)
+{
     DataNode *current = head;
-    int index = 0;
+    
     FILE *file = NULL;
     char filename[256];
-    
-    while (current) {
-        if (!file) {
-            sprintf(filename, "%s/%d", location, ++index);
+
+    while (current)
+    {
+        if (!file)
+        {
+            sprintf(filename, "%s/%d", location, ++(*split_index));
             file = fopen(filename, "a");
-            if (!file) {
-                printf("無法創建檔案 %s\n", filename);
-                exit(EXIT_FAILURE);
-            }
-        }
-        
-        char dataToWrite[512];
-        int dataLength = snprintf(dataToWrite, sizeof(dataToWrite), "%s %s/%lu\n", current->data->id, src, current->hash_value);
-        
-        if (getFileSize(file) + dataLength > MAX_FILE_SIZE) {
-            fclose(file);
-            sprintf(filename, "%s/%d", location, ++index);
-            file = fopen(filename, "a");
-            if (!file) {
+            if (!file)
+            {
                 printf("無法創建檔案 %s\n", filename);
                 exit(EXIT_FAILURE);
             }
         }
 
-        fprintf(file, "%s", dataToWrite);
+        char dataToWrite[512] = "";
+        int dataLength = snprintf(dataToWrite, sizeof(dataToWrite), "%s %s/%lu\n", current->data->id, src, current->hash_value);
+        long size = getFileSize(file);
+        if (size + dataLength > MAX_FILE_SIZE)
+        {
+            fclose(file);
+            sprintf(filename, "%s/%d", location, ++(*split_index));
+            file = fopen(filename, "a");
+            if (!file)
+            {
+                printf("無法創建檔案 %s\n", filename);
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        fputs(dataToWrite,file);
         current = current->next;
     }
 
-    if (file) {
+    if (file)
+    {
         fclose(file);
     }
 }
