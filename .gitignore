@@ -1,1 +1,8 @@
 .DS_Store
+.vscode
+test
+obj
+bin/*
+index
+trees
+answer
