@@ -6,12 +6,14 @@
 #include "Utils.h"
 #include "hashes.h"
 #include "LinkedList.h"
+#include "quick_sort.h"
 #define MAX_LINE_LENGTH 256
 
 FILE *open_file(const char *, const char *);
 void close_file(FILE *);
 ParsedLine *parse_line(const char *);
 void ProcessFile(const char *, BPlusTreeNode **,BPlusTreeNode **);
+void Write_terminal(const char *,char *);
 void ManyFile(const int);
 int isDirectoryExists(const char *);
 int isFileExistsStats(const char *path);

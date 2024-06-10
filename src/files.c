@@ -87,6 +87,49 @@ void ProcessFile(const char *filename, BPlusTreeNode **root,BPlusTreeNode **root
     DataNode_free(data_list2);
     close_file(file);
 }
+
+void Write_terminal(const char *filename,char *id){
+    unsigned long hash_value = hash_function(id);
+    int Terminal_INDEX = 0;
+    int Now_Index = 0;
+    char countfile[256];
+    sprintf(countfile, "%s/%lu/count", filename, hash_value);
+
+    FILE *count = open_file(countfile, "rb");
+    fread(&Terminal_INDEX, sizeof(int), 1, count);
+    fclose(count);
+
+    Data *data = NULL;
+    int data_count = 0;
+    int capacity = 10; // Initial capacity
+    data = (Data *)malloc(sizeof(Data) * capacity);
+
+    while (Terminal_INDEX >= Now_Index) {
+        char datafile[256];
+        sprintf(datafile, "%s/%lu/%d", filename, hash_value, Now_Index);
+        FILE *file = open_file(datafile, "r");
+        char line[MAX_LINE_LENGTH];
+        while (fscanf(file, "%s", line) != EOF) {
+            if (data_count >= capacity) {
+                capacity *= 2;
+                data = (Data *)realloc(data, sizeof(Data) * capacity);
+                if (!data) {
+                    printf("Memory reallocation error\n");
+                    fclose(file);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            strcpy(data[data_count].id, line);
+            data_count++;
+        }
+        fclose(file);
+        Now_Index++;
+    }
+    printf("Student ID Hash_Value :%lu", hash_value);
+    sort_and_write_data(data, data_count, ANSWER);
+    free(data);
+}
+
 int isDirectoryExists(const char *path)
 {
     struct stat stats;

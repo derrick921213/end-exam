@@ -99,6 +99,7 @@ int main(int argc, char *argv[])
             if (search(Student_Course, id))
             {
                 printColored(stdout,"Student ID found\n","\033[32m");
+                Write_terminal(STUDENT_COURSDE,id);
             }
             else
             {
@@ -118,6 +119,7 @@ int main(int argc, char *argv[])
             if (search(Course_Student, id))
             {
                 printColored(stdout,"Course ID found\n","\033[32m");
+                Write_terminal(COURSE_STUDENT,id);
             }
             else
             {
