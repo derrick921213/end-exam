@@ -27,6 +27,7 @@
 #define COURSE_TO_COURSE_HASH INDEXDIR"/course_To_course_hash"
 #define PLACEHOLDER "Selection Action:\n1. Search Student\n2. Search Course\n0. Quit\n>> "
 #define ANSWER DATA"/answer"
+#define MAX_LINE_LENGTH 256
 typedef struct DataNode
 {
     unsigned long hash_value;
@@ -35,11 +36,13 @@ typedef struct DataNode
 } DataNode;
 typedef struct ParsedLine
 {
-    char id[32];
-    char number[50];
+    char *id;
+    char *number;
+    char *name;
 } ParsedLine;
 typedef struct Data {
-    char id[256];
+    char id[1000];
+    char number[1000];
 } Data;
 typedef struct INDEX
 {

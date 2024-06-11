@@ -22,6 +22,7 @@ void ManyFile(const int n)
 
 int initialization(void)
 {
+    
     if (!isDirectoryExists(DATA))
     {
         return -1;
@@ -31,6 +32,7 @@ int initialization(void)
         const char *to_create[] = {INDEXDIR,STUDENT_TO_STUDENT_HASH,COURSE_TO_COURSE_HASH, STUDENT_COURSDE, COURSE_STUDENT};
         int length = sizeof(to_create) / sizeof(to_create[0]);
         delete_create_dir(to_create, length);
+        
         ManyFile(FILECOUNT);
     }
     else
@@ -99,7 +101,7 @@ int main(int argc, char *argv[])
             if (search(Student_Course, id))
             {
                 printColored(stdout,"Student ID found\n",GRN);
-                Write_terminal(STUDENT_COURSDE,id);
+                Write_terminal(STUDENT_COURSDE,id,"Student ID");
             }
             else
             {
@@ -119,7 +121,7 @@ int main(int argc, char *argv[])
             if (search(Course_Student, id))
             {
                 printColored(stdout,"Course ID found\n",GRN);
-                Write_terminal(COURSE_STUDENT,id);
+                Write_terminal(COURSE_STUDENT,id,"Course ID");
             }
             else
             {
@@ -129,5 +131,6 @@ int main(int argc, char *argv[])
         printf(PLACEHOLDER);
     }
     free_node(Student_Course);
+    free_node(Course_Student);
     return 0;
 }

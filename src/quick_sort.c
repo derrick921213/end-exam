@@ -48,7 +48,7 @@ void sort_and_write_data(Data *data, int count, const char *output_filename)
     }
     for (int i = 0; i < count; i++)
     {
-        sprintf(message, "%s", data[i].id);
+        sprintf(message, "%s %s", data[i].id,data[i].number);
         printColored(stdout,message, GRN);
         fprintf(output_file, "%s\n", data[i].id);
     }
