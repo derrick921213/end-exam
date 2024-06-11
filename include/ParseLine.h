@@ -5,6 +5,6 @@
 #include "files.h"
 #include <regex.h>
 void ProcessFile(const char *, BPlusTreeNode **,BPlusTreeNode **);
-int parse_line(const char *, ParsedLine *);
+ParsedLine* parse_line(const char *);
 void free_parse_line(ParsedLine *line);
 #endif

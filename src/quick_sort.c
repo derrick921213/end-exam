@@ -34,7 +34,6 @@ void quicksort(Data *data, int low, int high)
     }
 }
 
-// 对数据进行排序并写入文件，同时输出到终端
 void sort_and_write_data(Data *data, int count, const char *output_filename)
 {
     char message[256];
@@ -50,7 +49,7 @@ void sort_and_write_data(Data *data, int count, const char *output_filename)
     {
         sprintf(message, "%s %s", data[i].id,data[i].number);
         printColored(stdout,message, GRN);
-        fprintf(output_file, "%s\n", data[i].id);
+        fprintf(output_file, "%s %s\n", data[i].id,data[i].number);
     }
     sprintf(message, "Total count: %d", count);
     printColored(stdout,message, BLK);

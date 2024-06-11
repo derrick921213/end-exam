@@ -1,75 +1,38 @@
 #include "ParseLine.h"
 int split_index1 = 0;
 int split_index2 = 0;
-int parse_line(const char *line, ParsedLine *result)
-{
-    regex_t regex;
-    regmatch_t matches[4];
-    const char *pattern = "^([^,]+),([^,]+),(.+)$";
-    int reti;
-    reti = regcomp(&regex, pattern, REG_EXTENDED);
-    if (reti)
-    {
-        fprintf(stderr, "Could not compile regex\n");
-        return -1;
+ParsedLine* parse_line(const char *line) {
+    ParsedLine *result = (ParsedLine *)malloc(sizeof(ParsedLine));
+    char id[32];
+    int number;
+    char name[256];
+    if (sscanf(line, "%31[^,],%d,%255[^\n]", id, &number, name) != 3) {
+        fprintf(stderr, "Failed to parse line: %s\n", line);
+        return NULL;
     }
 
-    reti = regexec(&regex, line, 4, matches, 0);
-    if (!reti)
-    {
-        int id_length = matches[1].rm_eo - matches[1].rm_so;
-        int number_length = matches[2].rm_eo - matches[2].rm_so;
-        int name_length = matches[3].rm_eo - matches[3].rm_so;
-        result->id = (char *)malloc(sizeof(char) * (id_length + 1));
-        result->number = (char *)malloc(sizeof(char) * (number_length + 1));
-        result->name = (char *)malloc(sizeof(char) * (name_length + 1));
+    result->id = (char*)malloc(sizeof(char)*(strlen(id)+1));
+    strcpy(result->id, id);
+    result->number = (char *)malloc(12); // To store the integer as string
+    snprintf(result->number, 12, "%d", number);
+    result->name = (char*)malloc(sizeof(char)*(strlen(name)+1));
+    strcpy(result->name, name);
+    if (!result->id || !result->number || !result->name) {
+        fprintf(stderr, "Memory allocation failed\n");
+        if (result->id) free(result->id);
+        if (result->number) free(result->number);
+        if (result->name) free(result->name);
+        return NULL;
+    }
 
-        if (!result->id || !result->number || !result->name)
-        {
-            fprintf(stderr, "Memory allocation failed\n");
-            regfree(&regex);
-            return -1;
-        }
-        strncpy(result->id, line + matches[1].rm_so, id_length);
-        result->id[id_length + 1] = '\0';
-        strncpy(result->number, line + matches[2].rm_so, number_length);
-        result->number[number_length + 1] = '\0';
-        strncpy(result->name, line + matches[3].rm_so, name_length);
-        result->name[name_length + 1] = '\0';
-
-        regfree(&regex);
-        return 0;
-    }
-    else if (reti == REG_NOMATCH)
-    {
-        printf("No match found\n");
-        regfree(&regex);
-        return 0;
-    }
-    else
-    {
-        char msgbuf[100];
-        regerror(reti, &regex, msgbuf, sizeof(msgbuf));
-        fprintf(stderr, "Regex match failed: %s\n", msgbuf);
-        regfree(&regex);
-        return -1;
-    }
+    return result;
 }
 
 void free_parse_line(ParsedLine *line)
 {
-    if (line->id)
-    {
-        free(line->id);
-    }
-    if (line->number)
-    {
-        free(line->number);
-    }
-    if (line->name)
-    {
-        free(line->name);
-    }
+    free(line->id);
+    free(line->number);
+    free(line->name);
 }
 void ProcessFile(const char *filename, BPlusTreeNode **root, BPlusTreeNode **root2)
 {
@@ -77,40 +40,33 @@ void ProcessFile(const char *filename, BPlusTreeNode **root, BPlusTreeNode **roo
     DataNode *data_list2 = NULL;
     int first_line = 1;
     FILE *file = open_file(filename, "r");
-    char line[MAX_LINE_LENGTH];
-    ParsedLine *result = (ParsedLine *)malloc(sizeof(ParsedLine));
-    if (!result)
-    {
-        perror("Failed to allocate memory for ParsedLine");
-        free(result);
-        exit(EXIT_FAILURE);
-    }
+    char line[500];
+
     while (fgets(line, sizeof(line), file) != NULL)
     {
         line[strcspn(line, "\n")] = '\0';
         if (first_line)
         {
-
             first_line = 0;
-            continue; // 跳過第一行
+            continue;
         }
-
-        if (parse_line(line, result) == 0)
+        ParsedLine *result = parse_line(line);
+        if (result)
         {
-            // printf("id: %s, number: %s, name: %s\n", result->id, result->number, result->name);
-            // printf("id: %s, number: %s\n", result->id, result->number);
+            // printf("ID: %s, Number: %s, Name: %s\n", result->id, result->number, result->name);
             insert(root, result->id);
             insert(root2, result->number);
             DataNode_insert(&data_list, result->id, result->number, result->name);
             DataNode_insert(&data_list2, result->number, result->id, result->name);
         }
+        // free_parse_line(result);
+        free(result);
     }
-    DataNode_write_files(data_list,STUDENT_COURSDE);
-    DataNode_write_files(data_list2,COURSE_STUDENT);
-    DataNode_write_index(data_list,STUDENT_TO_STUDENT_HASH,STUDENT_COURSDE,&split_index1);
-    DataNode_write_index(data_list2,COURSE_TO_COURSE_HASH,COURSE_STUDENT,&split_index2);
+    DataNode_write_files(data_list, STUDENT_COURSDE);
+    DataNode_write_files(data_list2, COURSE_STUDENT);
+    DataNode_write_index(data_list, STUDENT_TO_STUDENT_HASH, STUDENT_COURSDE, &split_index1);
+    DataNode_write_index(data_list2, COURSE_TO_COURSE_HASH, COURSE_STUDENT, &split_index2);
     DataNode_free(data_list);
     DataNode_free(data_list2);
-    free_parse_line(result);
     close_file(file);
 }
